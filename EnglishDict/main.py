@@ -1,27 +1,39 @@
 import json
 from difflib import get_close_matches
 
-data = json.load(open("data.json"))
 
-def translate(w):
-    w = w.lower()
-    if w in data:
-        return data[w]
-    elif len(get_close_matches(w, data.keys())) > 0:
-        yn = input("Did you mean %s instead? Enter Y if yes, or N if no: " % get_close_matches(w, data.keys())[0])
-        if yn == "Y":
-            return data[get_close_matches(w, data.keys())[0]]
-        elif yn == "N":
-            return "The word doesn't exist. Please double check it."
-        else:
-            return "We didn't understand your entry."
+def get_dict():
+    with open("data.json") as data_file:
+        dictionary = json.load(data_file)
+        return dictionary
+
+
+def get_definition(w, dictionary):
+    if w.lower() in dictionary:
+        return dictionary[w]
+    elif w.title() in dictionary:
+        return dictionary[w.title()]
+    elif w.upper() in dictionary:
+        return dictionary[w.upper()]
     else:
-        return "The word doesn't exist. Please double check it."
+        result = get_close_matches(w, dictionary.keys())
+        if len(result) > 0:
+            yn = input("Did you mean %s instead? [Y/n] " % result[0])
+            if yn.lower() == "y":
+                return dictionary[result[0]]
+            elif yn.lower() == "n":
+                return "Word doesn't exist, please double check it"
+            else:
+                return "Your query wasn't understood, please try again."
+        else:
+            return "Word doesn't exist, please double check it"
 
-word = input("Enter word: ")
-output = translate(word)
-if type(output) == list:
-    for item in output:
+
+word = str(input("Enter word: "))
+
+definition = get_definition(word, get_dict())
+if isinstance(definition, list):
+    for item in definition:
         print(item)
 else:
-    print(output)
+    print(definition)
